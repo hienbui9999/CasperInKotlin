@@ -1,0 +1,55 @@
+package com.casper.sdk.getpeers
+
+import net.jemzart.jsonkraken.get
+import net.jemzart.jsonkraken.toJson
+import net.jemzart.jsonkraken.toJsonString
+import  net.jemzart.jsonkraken.toJsonArray
+import  net.jemzart.jsonkraken.toJsonObject
+import  net.jemzart.jsonkraken.*
+
+import net.jemzart.jsonkraken.values.JsonArray
+import java.net.URI
+import java.net.URLEncoder
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+
+class GetPeers {
+    var methodName:String = "info_get_peers"
+    var casperURLTestNet:String = "https://node-clarity-testnet.make.services/rpc";
+    fun getPeers() :String {
+        val values = mapOf("id" to "1", "method" to "info_get_peers", "jsonrpc" to "2.0","params" to "[]")
+        val client = HttpClient.newBuilder().build();
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(this.casperURLTestNet))
+            .POST(formData(values))
+            .header("Content-Type", "application/json")
+            .build()
+        val response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //println(response.body())
+        val json =response.body().toJson()
+        println(json.toJsonString()) //prints: {"getting":{"started":"Hello World"}}
+       // println(json.get("result").get("state_root_hash")) //prints: Hello World
+        //About to parse the body back
+        val peerList = json.get("result").get("peers")
+        if (peerList is JsonArray) {
+            println("Length:" + peerList.size)
+            var counter:Int = 0
+            for(peer in peerList) {
+                println("Peer number:" + counter + " node_id is:" + peer.get("node_id").toString() + " address:" + peer.get("address").toString())
+                counter ++
+            }
+        }
+        println(peerList)
+        return json.toJsonString()
+    }
+    fun String.utf8(): String = URLEncoder.encode(this, "UTF-8")
+    fun formData(data: Map<String, String>): HttpRequest.BodyPublisher? {
+
+        var res = data.map {(k, v) -> "\"${k}\":\"${v}\""}
+            .joinToString(",")
+        res = "{" + res + "}"
+        println(res)
+        return HttpRequest.BodyPublishers.ofString(res)
+    }
+}
