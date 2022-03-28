@@ -7,5 +7,6 @@ fun main(args: Array<String>) {
     getStateRootHash.getStateRootHash()
 
     var getPeers:GetPeers = GetPeers()
-    getPeers.getPeers()
+    var getPeersResult =    getPeers.getPeers()
+    println("Get peer result, api_version:" + getPeersResult.api_version + " total peer:" + getPeersResult.peers.size)
 }

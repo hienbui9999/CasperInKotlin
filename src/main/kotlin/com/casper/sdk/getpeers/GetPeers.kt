@@ -17,7 +17,7 @@ import java.net.http.HttpResponse
 class GetPeers {
     var methodName:String = "info_get_peers"
     var casperURLTestNet:String = "https://node-clarity-testnet.make.services/rpc";
-    fun getPeers() :String {
+    fun getPeers() :GetPeersResult {
         val values = mapOf("id" to "1", "method" to "info_get_peers", "jsonrpc" to "2.0","params" to "[]")
         val client = HttpClient.newBuilder().build();
         val request = HttpRequest.newBuilder()
@@ -32,16 +32,24 @@ class GetPeers {
        // println(json.get("result").get("state_root_hash")) //prints: Hello World
         //About to parse the body back
         val peerList = json.get("result").get("peers")
+
+        var getPeersResult:GetPeersResult = GetPeersResult()
+        getPeersResult.api_version = json.get("result").get("api_version").toString()
+
         if (peerList is JsonArray) {
             println("Length:" + peerList.size)
             var counter:Int = 0
             for(peer in peerList) {
+                var onePeerEntry:PeerEntry = PeerEntry()
+                onePeerEntry.address = peer.get("address").toString()
+                onePeerEntry.node_id = peer.get("nod_id").toString()
+                getPeersResult.peers.add(onePeerEntry)
                 println("Peer number:" + counter + " node_id is:" + peer.get("node_id").toString() + " address:" + peer.get("address").toString())
                 counter ++
             }
         }
         println(peerList)
-        return json.toJsonString()
+        return getPeersResult
     }
     fun String.utf8(): String = URLEncoder.encode(this, "UTF-8")
     fun formData(data: Map<String, String>): HttpRequest.BodyPublisher? {
